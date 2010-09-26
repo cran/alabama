@@ -21,7 +21,7 @@ optim.ctrl <- modifyList(control.optim.default, control.optim)
 
    if (is.null(hin)) {
     if (is.null(heq.jac) ) heq.jac <- function(par, ...) jacobian(func=heq, x=par, method= "simple", ...)
-    ans <- auglag(par, fn, gr, heq=heq, heq.jac=heq.jac, control.outer=outer.ctrl, control.optim=optim.ctrl, ...)
+    ans <- augpen(par, fn, gr, heq=heq, heq.jac=heq.jac, control.outer=outer.ctrl, control.optim=optim.ctrl, ...)
   }  else if (is.null(heq)) {
 
     if (is.null(hin.jac)) hin.jac <- function(par, ...) jacobian(func=hin, x=par, method= "simple", ...)
@@ -136,7 +136,7 @@ NMinit <- control.outer$NMinit
     a
 }
 ###################################################################
-auglag <-
+augpen <-
 function (theta, fn, gr=gr, heq=heq, heq.jac=heq.jac, control.outer = control.outer, control.optim=control.optim, ...)  {
 
 mu <- control.outer$mu0

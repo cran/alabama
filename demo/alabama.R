@@ -18,6 +18,8 @@ set.seed(21)
 system.time(ans <- constrOptim.nl(par=rnorm(3), fn=fn, gr=gr, heq=heq, heq.jac=heq.jac))[1] 
 ans
 
+system.time(ans2 <- auglag(par=rnorm(3), fn=fn, gr=gr, heq=heq, heq.jac=heq.jac))[1] 
+ans2
 #######################################################################################################
 fn <- function(x) (x[1] - 3/2)^2 + (x[2] - 1/8)^4
 
@@ -44,8 +46,11 @@ j
 
 p0 <- runif(2) # note: initial value must be feasible
 #p0 <- c(0.2, 0.6)
-ans <- constrOptim.nl(par=p0, fn=fn, gr=gr, hin=hin, hin.jac=hin.jac) 
-ans
+ans1 <- constrOptim.nl(par=p0, fn=fn, gr=gr, hin=hin, hin.jac=hin.jac) 
+ans1
+
+ans2 <- auglag(par=p0, fn=fn, gr=gr, hin=hin, hin.jac=hin.jac) 
+ans2
 
 #######################################################################################################
 fn <- function(x) sin(x[1] + x[2]) + x[3]^2 + 1/3 * (x[4] + x[5]^4 + x[6]/2)
@@ -72,6 +77,8 @@ ans <- constrOptim.nl(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac)
 ans
 ans2 <- constrOptim.nl(par=p0, fn=fn, heq=heq)
 ans2 
+ans3 <- auglag(par=p0, fn=fn, heq=heq)
+ans3 
 
 #######################################################################################################
 fn <- function(x) (x[1] + 3*x[2] + x[3])^2 + 4 * (x[1] - x[2])^2
@@ -119,9 +126,13 @@ j
 set.seed(12)
 p0 <- runif(3)
 ans <- constrOptim.nl(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac) 
+
 set.seed(12)
 p0 <- runif(3)
 ans2 <- constrOptim.nl(par=p0, fn=fn, heq=heq, hin=hin) 
+
+p0 <- runif(3)
+ans3 <- auglag(par=p0, fn=fn, heq=heq, hin=hin) 
 #######################################################################################################
 ##  4-component univariate Gaussian mixture MLE
 # Common variance
@@ -241,6 +252,8 @@ ans2 <- constrOptim.nl(par=par0, fn=gaussmix.mloglik, heq=heq, heq.jac=heq.jac, 
 
 grad(x=ans$par[-4], func=gmix)
 
+ans3 <- auglag(par=par0, fn=gaussmix.mloglik, heq=heq, heq.jac=heq.jac, hin=hin, control.outer=list(itmax=20), control.optim=list(fnscale=-1))
+
 ####################################################################################################################
 # Minimize the following function
 fn <- function(x, mat)  {
@@ -285,6 +298,8 @@ p0 <- project(runif(3))  # a randomly generated feasible starting value
 #p0 <- c(0.1, 0.4, 0.6)
 ans <- constrOptim.nl(par=p0, fn=fn, hin=hin, heq=heq, mat=Amat) 
 ans
+ans2 <- auglag(par=p0, fn=fn, hin=hin, heq=heq, mat=Amat) 
+ans2
 ####################################################################################################################
 
 

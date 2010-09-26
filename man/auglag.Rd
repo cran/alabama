@@ -1,21 +1,21 @@
-\name{constrOptim.nl}
-\alias{constrOptim.nl}
-\alias{adpbar}
-\alias{augpen}
-\alias{alabama}
+\name{auglag}
+\alias{auglag}
+\alias{auglag1}
+\alias{auglag2}
+\alias{auglag3}
+
 \title{
 Nonlinear optimization with constraints
 }
 \description{
-Augmented Lagrangian Adaptive Barrier Minimization Algorithm for optimizing smooth nonlinear objective functions with constraints. Linear or nonlinear equality and inequality constraints are allowed.
+Augmented Lagrangian Minimization Algorithm for optimizing smooth nonlinear objective functions with constraints. Linear or nonlinear equality and inequality constraints are allowed.
 }
 \usage{
-constrOptim.nl(par, fn, gr = NULL, 
-hin = NULL, hin.jac = NULL, heq = NULL, heq.jac = NULL, 
+auglag(par, fn, gr, hin, hin.jac, heq, heq.jac, 
 control.outer=list(), control.optim = list(), ...)
 }
 \arguments{
-\item{par}{starting vector of parameter values; initial vector must be "feasible"}
+\item{par}{Starting vector of parameter values.  Any initial vector may be specified.  This is in contrast to \code{constrOptim.nl} which requires  "feasible" initial values with respect to inequality constraints}
 \item{fn}{
 Nonlinear objective function that is to be optimized. 
       A scalar function that takes a real vector as argument and 
@@ -39,16 +39,20 @@ a vector function specifying equality constraints such that heq[j] = 0 for all j
 \item{heq.jac}{
 Jacobian of \code{heq}.  If unspecified, it will be computed using finite-difference, but computations will be faster if specified.
 }
+
 \item{control.outer}{A list of control parameters to be used by the outer loop in \code{constrOptim.nl}.  See *Details* for more information.}
+
 \item{control.optim}{A list of control parameters to be used by the unconstrained optimization algorithm in the inner loop. Identical to that used in \code{optim}.}
+
 \item{...}{Additional arguments passed to \code{fn}, \code{gr}, \code{hin}, \code{heq}.  All of them must accept any specified arguments, either explicitly or by having a \dots argument, but they do not need to use them all.} 
 }
+
 \details{
 Argument \code{control.outer} is a list specifing any changes to default values of algorithm control parameters for the outer loop.  Note that the names of these must be specified completely.  Partial matching will not work. The list items are as follows:
 
-\code{mu0}: A scaling parameter for barrier penalty for inequality constraints.
+\code{lam0}: Initial value for the Lagrangian parameter.
 
-\code{sig0}: A scaling parameter for augmented lagrangian for equality constraints
+\code{sig0}: A scaling parameter for penalty term that is augmented to the Lagrangian.
 
 \code{eps}: Tolerance for convergence of outer iterations of the barrier and/or augmented lagrangian algorithm
 
@@ -59,6 +63,10 @@ Argument \code{control.outer} is a list specifing any changes to default values 
 \code{method}: Unconstrained optimization algorithm in optim() to be used; default is the "BFGS" variable metric method.
 
 \code{NMinit}: A logical variable indicating whether "Nelder-Mead" algorithm should be used in optim() for the first outer iteration.
+
+\code{i.scale}: A vector of length equal to number of inequalities that may be used to scale the inequalities or it can be a scalar in which case all the inequalities are scaled by the same value. 
+
+\code{e.scale}: A vector of length equal to number of equalities that may be used to scale the equalities or it can be a scalar in which case all the equalities are scaled by the same value. 
 }
 
 \value{
@@ -67,23 +75,26 @@ A list with the following components:
 
 \item{value}{The value of the objective function at termination.}
 
+\item{counts}{A vector of length 2 denoting the number of times the objective \code{fn} and the \code{gr} were evaluated, respectively.
+}
+
 \item{convergence}{An integer code indicating type of convergence.  \code{0} indicates successful convergence. Positive integer codes indicate failure to converge.    
 }
 
-\item{message}{Text message indicating the type of convergence or failure.    
+\item{message}{Text message indicating the type of convergence or failure. Message is shown on whether or not the first-order Karash-Kuhn-Tucker conditions are satisfied.  
 }
 
 \item{outer.iterations}{Number of outer iterations} 
 
-\item{lambda}{Value of augmented Lagrangian penalty parameter}
+\item{lambda}{Values of the Lagrangian parameter.  This is a vector of same length as the total number of inequalities and equalities.  It must be zero for inactive inequalities; non-negative for active inequalities; and can have any sign for equalities.}
 
-\item{sigma}{Value of augmented Lagrangian penalty parameter for the quadratic term}
+\item{sigma}{Value of augmented penalty parameter for the quadratic term}
 
-\item{barrier.value}{Reduction in the value of the function from its initial value. This is negative in maximization.}
+\item{gradient}{Gradientt of the augmented Lagrangian function at convergence. It should be small}
 
-\item{K}{Residual norm of equality constraints.  Must be small at convergence.}
+\item{ineq}{Values of inequlaity constraints at convergence. All of them must be non-negative}
 
-\item{counts}{A vector of length 2 denoting the number of times the objective \code{fn} and the \code{gr} were evaluated, respectively.}
+\item{equal}{Values of equlaity constraints at convergence. All of them must be close to zero.}
 }
 \references{
 
@@ -96,7 +107,7 @@ Madsen K, Nielsen HB, Tingleff O, \emph{Optimization With Constraints}, 2004, IM
 Ravi Varadhan, Center on Aging and Health, Johns Hopkins University.
 }
 \seealso{
-See Also \code{\link{constrOptim}}, \code{\link{auglag}}.
+See Also \code{\link{constrOptim.nl}}.
 }
 
 \examples{
@@ -143,14 +154,15 @@ j[4, ] <- c(0, 0, 1)
 j
 }
 
-set.seed(12)
+# Note: `auglag' accepts infeasible starting values
+#
 p0 <- runif(3)
-ans <- constrOptim.nl(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac) 
+ans <- auglag(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac) 
 
 # Not specifying the gradient and the Jacobians
 set.seed(12)
 p0 <- runif(3)
-ans2 <- constrOptim.nl(par=p0, fn=fn, heq=heq, hin=hin) 
+ans2 <- auglag(par=p0, fn=fn, heq=heq, hin=hin) 
 
 }
 
