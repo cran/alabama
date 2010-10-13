@@ -53,34 +53,6 @@ ans2 <- auglag(par=p0, fn=fn, gr=gr, hin=hin, hin.jac=hin.jac)
 ans2
 
 #######################################################################################################
-fn <- function(x) sin(x[1] + x[2]) + x[3]^2 + 1/3 * (x[4] + x[5]^4 + x[6]/2)
-
-gr <- function(x) c(cos(x[1] + x[2]), cos(x[1] + x[2]), 2*x[3], 1/3, 4/3*x[5]^3 , 1/6)
-
-heq <- function(x) {
-h <- rep(NA, 2)
-h[1] <- 8*x[1] - 6*x[2] + x[3] + 9*x[4] + 4*x[5] - 6
-h[2] <- 3*x[1] + 2*x[2] - x[4] + 6*x[5] + 4*x[6] + 4
-h
-}
-
-
-heq.jac <- function(x) {
-j <- matrix(NA, 2, length(x))
-j[1, ] <- c(8, -6, 1, 9, 4, 0)
-j[2, ] <- c(3, 2, 0, -1, 6, 4)
-j
-}
-
-p0 <- runif(6)
-ans <- constrOptim.nl(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac) 
-ans
-ans2 <- constrOptim.nl(par=p0, fn=fn, heq=heq)
-ans2 
-ans3 <- auglag(par=p0, fn=fn, heq=heq)
-ans3 
-
-#######################################################################################################
 fn <- function(x) (x[1] + 3*x[2] + x[3])^2 + 4 * (x[1] - x[2])^2
 
 gr <- function(x) {
@@ -116,7 +88,7 @@ h
 
 hin.jac <- function(x) {
 j <- matrix(NA, 4, length(x))
-j[1, ] <- c(-x[1]^2, 6, 4)
+j[1, ] <- c(-3*x[1]^2, 6, 4)
 j[2, ] <- c(1, 0, 0)
 j[3, ] <- c(0, 1, 0)
 j[4, ] <- c(0, 0, 1)
@@ -234,25 +206,17 @@ sigma <- 2
 npts <- 1000
 y <- rgaussmix(npts, p, mu, sigma)
 
-#y <- dget(file="i:/computing/ydata")
-#ymat <- dget(file="h:/global_maxim/gaussmix_ymat.out")
-#likmax <- dget(file="h:/global_maxim/gaussmix_loglikmax.out")
-#select <- sample(1:nrow(ymat), 1)
-#y <- ymat[select, ]
-
 ymean <- mean(y)
 ysd <- sd(y)
 p0 <- rep(1/nmix, nmix)
 ymean0 <- ymean + ysd * runif(nmix, -1.2, 1.2)
 ysd0 <- ysd
 par0 <- c(p0,ymean0, ysd0^2)
-ans <- constrOptim.nl(par=par0, fn=gaussmix.mloglik, gr=gaussmix.grad, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac, control.outer=list(itmax=20), control.optim=list(fnscale=-1))
+ans1 <- constrOptim.nl(par=par0, fn=gaussmix.mloglik, gr=gaussmix.grad, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac, control.outer=list(itmax=20), control.optim=list(fnscale=-1))
 
-ans2 <- constrOptim.nl(par=par0, fn=gaussmix.mloglik, heq=heq, heq.jac=heq.jac, hin=hin, control.outer=list(itmax=20), control.optim=list(fnscale=-1))
+grad(x=ans1$par[-4], func=gmix)
 
-grad(x=ans$par[-4], func=gmix)
-
-ans3 <- auglag(par=par0, fn=gaussmix.mloglik, heq=heq, heq.jac=heq.jac, hin=hin, control.outer=list(itmax=20), control.optim=list(fnscale=-1))
+ans2 <- auglag(par=par0, fn=gaussmix.mloglik, heq=heq, heq.jac=heq.jac, hin=hin, control.outer=list(itmax=20), control.optim=list(fnscale=-1))
 
 ####################################################################################################################
 # Minimize the following function

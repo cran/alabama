@@ -103,7 +103,7 @@ auglag1 <- function (par, fn, gr = NULL,
     sig <- sig0
 
     K <- Inf
-    cat("Max(abs(heq)): ", max(abs(d0)), "\n")
+    if (trace) cat("Max(abs(heq)): ", max(abs(d0)), "\n")
     for (i in 1:itmax) {
         if (trace) {
             cat("Outer iteration: ", i, "\n")
@@ -156,13 +156,12 @@ auglag1 <- function (par, fn, gr = NULL,
     a$sigma <- sig
     a$value <- fn(a$par, ...)
     a$gradient <- gradient(a$par, ...)
+    a$hessian <- jacobian(x=a$par, func=gradient, ...)
     a$ineq <- NA
     a$equal <- heq(a$par, ...)
     a$counts <- c(feval, geval)
-	if (a$convergence == 0) {
-    a$message <- if (max(abs(a$gradient)) > 0.01) "KKT first-order condition is violated"  
-	else "Successful convergence"
-	}
+    a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
+    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
     a
 }
 
@@ -219,7 +218,7 @@ auglag2 <- function (par, fn, gr = NULL,
     sig <- sig0
 
     K <- Inf
-    cat("Min(hin): ", min(h0), "\n")
+    if (trace) cat("Min(hin): ", min(h0), "\n")
     for (i in 1:itmax) {
         if (trace) {
             cat("Outer iteration: ", i, "\n")
@@ -275,13 +274,12 @@ auglag2 <- function (par, fn, gr = NULL,
     a$sigma <- sig
     a$value <- fn(a$par, ...)
     a$gradient <- gradient(a$par, ...)
+    a$hessian <- jacobian(x=a$par, func=gradient, ...)
     a$ineq <- hin(a$par, ...) 
     a$equal <- NA
     a$counts <- c(feval, geval)
-	if (a$convergence == 0) {
-    a$message <- if (max(abs(a$gradient)) > 0.01) "KKT first-order condition is violated"  
-	else "Successful convergence"
-	}
+    a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
+    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
     a
 }
 
@@ -352,7 +350,7 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
     sig <- sig0
 
     K <- Inf
-    cat("Min(hin): ", min(h0), "Max(abs(heq)): ", max(abs(i0)), "\n")
+    if (trace) cat("Min(hin): ", min(h0), "Max(abs(heq)): ", max(abs(i0)), "\n")
     for (i in 1:itmax) {
         if (trace) {
             cat("Outer iteration: ", i, "\n")
@@ -412,13 +410,12 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
     a$sigma <- sig
     a$value <- fn(a$par, ...)
     a$gradient <- gradient(a$par, ...)
+    a$hessian <- jacobian(x=a$par, func=gradient, ...)
     a$ineq <- hin(a$par, ...) 
     a$equal <- heq(a$par, ...)
     a$counts <- c(feval, geval)
-	if (a$convergence == 0) {
-    a$message <- if (max(abs(a$gradient)) > 0.01) "KKT first-order condition is violated"  
-	else "Successful convergence"
-	}
+    a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
+    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale> 0) 
     a
 }
 

@@ -94,12 +94,12 @@ NMinit <- control.outer$NMinit
         fun <- function(theta, ...) {
             R(theta, theta.old, ...)
         }
-        gradient <- function(theta, ...) {
+        grad <- function(theta, ...) {
             dR(theta, theta.old, ...)
         }
 	
-       if ( NMinit & i == 1)  a <- optim(par=theta.old, fn=fun, gr=gradient, control = control.optim, method = "Nelder-Mead", ...)
-      else a <- optim(par=theta.old, fn=fun, gr=gradient, control = control.optim, method = method, ...)
+       if ( NMinit & i == 1)  a <- optim(par=theta.old, fn=fun, gr=grad, control = control.optim, method = "Nelder-Mead", ...)
+      else a <- optim(par=theta.old, fn=fun, gr=grad, control = control.optim, method = method, ...)
         r <- a$value
 
 #  Here is "absolute" convergence criterion:
@@ -178,14 +178,14 @@ NMinit <- control.outer$NMinit
 		it <- heq(theta, ...)
             fn(theta, ...) - pfact * sum (lam * it) + pfact * sig/2 * sum(it * it)
         }
-        gradient <- function(theta, ...) {
+        grad <- function(theta, ...) {
 		it <- heq(theta, ...)
 		ij <- heq.jac(theta, ...)
             gr(theta, ...) - pfact * colSums(lam * ij) + pfact * sig * drop(t(ij) %*% it)
         }  
 	
-        if ( NMinit & k == 0 ) a <- optim(par=theta, fn=fun, gr=gradient, control = control.optim, method = "Nelder-Mead", ...)
-        else a <- optim(par=theta, fn=fun, gr=gradient, control = control.optim, method = method, ...)
+        if ( NMinit & k == 0 ) a <- optim(par=theta, fn=fun, gr=grad, control = control.optim, method = "Nelder-Mead", ...)
+        else a <- optim(par=theta, fn=fun, gr=grad, control = control.optim, method = method, ...)
 
 	  theta <- a$par
         r <- a$value
@@ -277,7 +277,7 @@ NMinit <- control.outer$NMinit
 	if (abs(mu) < 1.e-10) mu <- 1.e-04 * sign(mu)
 
 	K <- Inf
-		cat("Min(hin): ", min(h0), "Max(abs(heq)): ", Kprev, "\n")
+	if (trace) cat("Min(hin): ", min(h0), "Max(abs(heq)): ", Kprev, "\n")
 
     for (i in 1:itmax) {  # Adaptive Barrier MM loop for nonlinear "inequality" constraintts 
 	
@@ -296,7 +296,8 @@ NMinit <- control.outer$NMinit
 		it <- heq(theta, ...)
             R(theta, theta.old, ...) - pfact * sum (lam * it) + pfact * sig/2 * sum(it * it)
         }
-        gradient <- function(theta, ...) {
+
+        grad <- function(theta, ...) {
 		it <- heq(theta, ...)
 		ij <- heq.jac(theta, ...)
             dR(theta, theta.old, ...) - pfact * colSums(lam * ij) + pfact * sig * drop(t(ij) %*% it)
@@ -304,8 +305,8 @@ NMinit <- control.outer$NMinit
 
 	if(sig > 1e05) control.optim$reltol <- 1.e-10
 
-        if ( NMinit & i == 1)  a <- optim(par=theta.old, fn=fun, gr=gradient, control = control.optim, method = "Nelder-Mead", ...)
-       else a <- optim(par=theta.old, fn=fun, gr=gradient, control = control.optim, method = method, ...)
+        if ( NMinit & i == 1)  a <- optim(par=theta.old, fn=fun, gr=grad, control = control.optim, method = "Nelder-Mead", ...)
+       else a <- optim(par=theta.old, fn=fun, gr=grad, control = control.optim, method = method, ...)
 
 	theta <- a$par
         r <- a$value
@@ -328,27 +329,18 @@ NMinit <- control.outer$NMinit
         if ((is.finite(r) && is.finite(r.old) && abs(r - r.old) < eps && K < eps) | pconv < 1.e-12) {
 #        if (is.finite(obj) && is.finite(obj.old) && abs(obj - obj.old) < eps && K < eps) {
 		theta.old <- theta
-		atemp <- optim(par=theta, fn=fun, gr=gradient, control = control.optim, method = "BFGS", hessian=TRUE, ...)
+		atemp <- optim(par=theta, fn=fun, gr=grad, control = control.optim, method = "BFGS", hessian=TRUE, ...)
 		a$hessian <- atemp$hess 
 		break
 		}
 		
- }
+}
 
     if (i == itmax) {
         a$convergence <- 7
         a$message <- "ALABaMA ran out of iterations and did not converge"
-    } else {
-	evals <- eigen(a$hessian)$val
-	if (min(evals) < -0.1)  {
-        a$convergence <- 8
-        a$message <- "Second-order KKT conditions not satisfied"
-	} 
-	else if (K > eps)  {
-        a$convergence <- 9
-        a$message <- "Convergence due to lack of progress in parameter updates"
-	} 
-   }
+	}
+
     a$outer.iterations <- i
     a$lambda <- lam
     a$sigma <- sig

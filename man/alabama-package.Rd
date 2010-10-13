@@ -10,7 +10,7 @@ Augmented Lagrangian and Adaptive Barrier Minimization Algorithm for optimizing 
 Package: \tab alabama\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
-Date: \tab 2010-09-26\cr
+Date: \tab 2010-10-13\cr
 License: \tab What license is it under?\cr
 LazyLoad: \tab yes\cr
 }

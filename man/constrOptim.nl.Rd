@@ -96,7 +96,7 @@ Madsen K, Nielsen HB, Tingleff O, \emph{Optimization With Constraints}, 2004, IM
 Ravi Varadhan, Center on Aging and Health, Johns Hopkins University.
 }
 \seealso{
-See Also \code{\link{constrOptim}}, \code{\link{auglag}}.
+See Also \code{\link{auglag}}, \code{\link{constrOptim}}.
 }
 
 \examples{
@@ -136,7 +136,7 @@ h
 
 hin.jac <- function(x) {
 j <- matrix(NA, 4, length(x))
-j[1, ] <- c(-x[1]^2, 6, 4)
+j[1, ] <- c(-3*x[1]^2, 6, 4)
 j[2, ] <- c(1, 0, 0)
 j[3, ] <- c(0, 1, 0)
 j[4, ] <- c(0, 0, 1)

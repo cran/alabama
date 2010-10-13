@@ -15,7 +15,7 @@ auglag(par, fn, gr, hin, hin.jac, heq, heq.jac,
 control.outer=list(), control.optim = list(), ...)
 }
 \arguments{
-\item{par}{Starting vector of parameter values.  Any initial vector may be specified.  This is in contrast to \code{constrOptim.nl} which requires  "feasible" initial values with respect to inequality constraints}
+\item{par}{Starting vector of parameter values.  Any initial vector, even those violating inequality constraints, may be specified.  This is in contrast to \code{constrOptim.nl} which requires  "feasible" initial values with respect to inequality constraints}
 \item{fn}{
 Nonlinear objective function that is to be optimized. 
       A scalar function that takes a real vector as argument and 
@@ -81,20 +81,23 @@ A list with the following components:
 \item{convergence}{An integer code indicating type of convergence.  \code{0} indicates successful convergence. Positive integer codes indicate failure to converge.    
 }
 
-\item{message}{Text message indicating the type of convergence or failure. Message is shown on whether or not the first-order Karash-Kuhn-Tucker conditions are satisfied.  
-}
-
 \item{outer.iterations}{Number of outer iterations} 
 
 \item{lambda}{Values of the Lagrangian parameter.  This is a vector of same length as the total number of inequalities and equalities.  It must be zero for inactive inequalities; non-negative for active inequalities; and can have any sign for equalities.}
 
 \item{sigma}{Value of augmented penalty parameter for the quadratic term}
 
-\item{gradient}{Gradientt of the augmented Lagrangian function at convergence. It should be small}
+\item{gradient}{Gradient of the augmented Lagrangian function at convergence. It should be small.}
+
+\item{hessian}{Hessian of the augmented Lagrangian function at convergence. It should be positive (negative) definite for minimization (maximization)}
 
 \item{ineq}{Values of inequlaity constraints at convergence. All of them must be non-negative}
 
 \item{equal}{Values of equlaity constraints at convergence. All of them must be close to zero.}
+
+\item{kkt1}{A logical variable indicating whether or not the first-order KKT conditions were satisfied.}
+
+\item{kkt2}{A logical variable indicating whether or not the second-order KKT conditions were satisfied.}
 }
 \references{
 
@@ -147,7 +150,7 @@ h
 
 hin.jac <- function(x) {
 j <- matrix(NA, 4, length(x))
-j[1, ] <- c(-x[1]^2, 6, 4)
+j[1, ] <- c(-3*x[1]^2, 6, 4)
 j[2, ] <- c(1, 0, 0)
 j[3, ] <- c(0, 1, 0)
 j[4, ] <- c(0, 0, 1)
