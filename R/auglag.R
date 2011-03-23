@@ -161,7 +161,9 @@ auglag1 <- function (par, fn, gr = NULL,
     a$equal <- heq(a$par, ...)
     a$counts <- c(feval, geval)
     a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
-    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
+#    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
+    evs <- eigen(a$hessian)$value    
+    a$kkt2 <- if (any(abs(Im(evs)) > 1.e-14)) FALSE else if (all(Re(evs) * control.optim$fnscale > 0)) TRUE else FALSE  
     a
 }
 
@@ -279,7 +281,9 @@ auglag2 <- function (par, fn, gr = NULL,
     a$equal <- NA
     a$counts <- c(feval, geval)
     a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
-    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
+#    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
+    evs <- eigen(a$hessian)$value    
+    a$kkt2 <- if (any(abs(Im(evs)) > 1.e-14)) FALSE else if (all(Re(evs) * control.optim$fnscale > 0)) TRUE else FALSE  
     a
 }
 
@@ -415,7 +419,9 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
     a$equal <- heq(a$par, ...)
     a$counts <- c(feval, geval)
     a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
-    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale> 0) 
+    evs <- eigen(a$hessian)$value    
+    a$kkt2 <- if (any(abs(Im(evs)) > 1.e-14)) FALSE else if (all(Re(evs) * control.optim$fnscale > 0)) TRUE else FALSE  
+#    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale> 0) 
     a
 }
 

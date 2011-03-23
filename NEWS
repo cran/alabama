@@ -6,3 +6,9 @@
 
   o Two of the convergence messages in `constrOptim.nl' where eliminated, because these were misleading.
 
+
+           Changes in "alabama" version 2011.3-1
+
+  o Fixed a bug in `auglag' related to KKT2 condition when eigenvalues of Hessian can be complex numbers.  
+	This bug occured in 3 functions: auglag1, auglag2, and auglag3.
+
