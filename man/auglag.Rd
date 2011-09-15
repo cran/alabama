@@ -58,6 +58,8 @@ Argument \code{control.outer} is a list specifing any changes to default values 
 
 \code{itmax}: Maximum number of outer iterations.
 
+\code{ilack.max}: Maximum number of outer iterations where no change in parameters is tolerated.
+
 \code{trace}: A logical variable indicating whether information on outer iterations should be printed out.  If TRUE, at each outer iteration information is displayed on: (i) how well the inequality and equalities are satisfied, (ii) current parameter values, and (iii) current objective function value.
 
 \code{method}: Unconstrained optimization algorithm in optim() to be used; default is the "BFGS" variable metric method.

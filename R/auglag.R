@@ -7,7 +7,7 @@ auglag <- function (par, fn, gr, hin, hin.jac, heq, heq.jac,
    if (missing(heq) & missing(hin)) stop("This is an unconstrained optimization problem - you should use `optim' \n")
 
 control.outer.default <- list(lam0 = 10, sig0 = 100, eps = 1e-07,
-       itmax = 50, method = "BFGS", trace = TRUE, NMinit = FALSE,
+       itmax = 50, method = "BFGS", trace = TRUE, NMinit = FALSE, ilack.max=6,
 i.scale = 1, e.scale = 1)
 
 control.optim.default <- list(trace = 0, fnscale = 1, parscale = rep.int(1,
@@ -69,6 +69,7 @@ auglag1 <- function (par, fn, gr = NULL,
     trace <- control.outer$trace
     eps <- control.outer$eps
     itmax <- control.outer$itmax
+    ilack.max <- control.outer$ilack.max
     method <- control.outer$method
     NMinit <- control.outer$NMinit
     pfact <- if (!is.null(control.optim$fnscale) && control.optim$fnscale < 
@@ -140,7 +141,7 @@ auglag1 <- function (par, fn, gr = NULL,
 	} else ilack <- 0 
 
         if ((is.finite(r) && is.finite(r.old) && abs(r - r.old) < 
-            eps && K < eps) | ilack >= 3) break
+            eps && K < eps) | ilack >= ilack.max) break
 }
 
     if (i == itmax) {
@@ -178,6 +179,7 @@ auglag2 <- function (par, fn, gr = NULL,
     trace <- control.outer$trace
     eps <- control.outer$eps
     itmax <- control.outer$itmax
+    ilack.max <- control.outer$ilack.max
     method <- control.outer$method
     NMinit <- control.outer$NMinit
     pfact <- if (!is.null(control.optim$fnscale) && control.optim$fnscale < 
@@ -260,7 +262,7 @@ auglag2 <- function (par, fn, gr = NULL,
 	} else ilack <- 0 
 
         if ((is.finite(r) && is.finite(r.old) && abs(r - r.old) < 
-            eps && K < eps) | ilack >= 3) break
+            eps && K < eps) | ilack >= ilack.max) break
 }
 
     if (i == itmax) {
@@ -299,6 +301,7 @@ auglag3 <- function (par, fn, gr = NULL,
     trace <- control.outer$trace
     eps <- control.outer$eps
     itmax <- control.outer$itmax
+    ilack.max <- control.outer$ilack.max
     method <- control.outer$method
     NMinit <- control.outer$NMinit
     pfact <- if (!is.null(control.optim$fnscale) && control.optim$fnscale < 
@@ -398,7 +401,7 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
 	} else ilack <- 0 
 
         if ((is.finite(r) && is.finite(r.old) && abs(r - r.old) < 
-            eps && K < eps) | ilack >= 3) break
+            eps && K < eps) | ilack >= ilack.max) break
 }
 
     if (i == itmax) {

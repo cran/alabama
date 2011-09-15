@@ -12,3 +12,7 @@
   o Fixed a bug in `auglag' related to KKT2 condition when eigenvalues of Hessian can be complex numbers.  
 	This bug occured in 3 functions: auglag1, auglag2, and auglag3.
 
+  Changes in "alabama" version 2011.9-1
+
+  o Added `ilack.max' as a control parameter and increased it to 6 (it was previously hard coded and set to 3)
+
