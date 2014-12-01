@@ -22,7 +22,7 @@ control.optim <- modifyList(control.optim.default, control.optim)
 e.scale <- control.outer$e.scale
 i.scale <- control.outer$i.scale
 
-	require(numDeriv, quietly=TRUE)
+#	require(numDeriv, quietly=TRUE)
      if (missing(gr)) gr <- function(par, ...) grad(func=fn, x=par, method= "simple", ...) 
 
    if (missing(hin)) {

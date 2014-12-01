@@ -16,7 +16,7 @@ control.optim.default <- list(trace = 0, fnscale = 1, parscale = rep.int(1,
 outer.ctrl <- modifyList(control.outer.default, control.outer) 
 optim.ctrl <- modifyList(control.optim.default, control.optim)
 
-	require(numDeriv, quietly=TRUE)
+#	require(numDeriv, quietly=TRUE)
      if (is.null(gr)) gr <- function(par, ...) grad(func=fn, x=par, method= "simple", ...)
 
    if (is.null(hin)) {

@@ -1,6 +1,6 @@
 \name{alabama}
 \docType{package}
-\title{Constrained nonlinear optimization
+\title{Constrained Nonlinear Optimization
 }
 \description{
 Augmented Lagrangian and Adaptive Barrier Minimization Algorithm for optimizing smooth nonlinear objective functions with constraints. Linear or nonlinear equality and inequality constraints are allowed.
@@ -18,8 +18,7 @@ LazyLoad: \tab yes\cr
 \author{
 Ravi Varadhan (with contributions from Gabor Grothendieck)
 
-Ravi Varadhan <rvaradhan@jhmi.edu>
-URL:http://www.jhsph.edu/agingandhealth/People/Faculty_personal_pages/Varadhan.html
+Ravi Varadhan <ravi.varadhan@jhu.edu>
 }
 \keyword{optimize}
 \seealso{
