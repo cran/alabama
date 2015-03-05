@@ -42,7 +42,7 @@ Jacobian of \code{heq}.  If unspecified, it will be computed using finite-differ
 
 \item{control.outer}{A list of control parameters to be used by the outer loop in \code{constrOptim.nl}.  See *Details* for more information.}
 
-\item{control.optim}{A list of control parameters to be used by the unconstrained optimization algorithm in the inner loop. Identical to that used in \code{optim}.}
+\item{control.optim}{A list of control parameters to be used by the unconstrained optimization algorithm in the inner loop. Identical to that used in \code{optim} or in \code{nlminb}.}
 
 \item{...}{Additional arguments passed to \code{fn}, \code{gr}, \code{hin}, \code{heq}.  All of them must accept any specified arguments, either explicitly or by having a \dots argument, but they do not need to use them all.} 
 }
@@ -62,13 +62,15 @@ Argument \code{control.outer} is a list specifing any changes to default values 
 
 \code{trace}: A logical variable indicating whether information on outer iterations should be printed out.  If TRUE, at each outer iteration information is displayed on: (i) how well the inequality and equalities are satisfied, (ii) current parameter values, and (iii) current objective function value.
 
-\code{method}: Unconstrained optimization algorithm in optim() to be used; default is the "BFGS" variable metric method.
+\code{method}: Unconstrained optimization algorithm for inner loop optimization.  User can specify any algorithm in \code{optim}(). The default is the "BFGS" variable metric method.  However, the user can also invoke the \code{nlminb}() algorithm by specifying method="nlminb", which can often perform better than "BFGS."
 
 \code{NMinit}: A logical variable indicating whether "Nelder-Mead" algorithm should be used in optim() for the first outer iteration.
 
 \code{i.scale}: A vector of length equal to number of inequalities that may be used to scale the inequalities or it can be a scalar in which case all the inequalities are scaled by the same value. 
 
 \code{e.scale}: A vector of length equal to number of equalities that may be used to scale the equalities or it can be a scalar in which case all the equalities are scaled by the same value. 
+
+\code{kkt2.check}: A logical variable (TRUE/FALSE) indicating whether the second-order KKT condition should be checked.  Deafult is TRUE.  It may be set to FALSE in problems where the Hessian computation can b etime consuming.  
 }
 
 \value{
@@ -112,7 +114,7 @@ Madsen K, Nielsen HB, Tingleff O, \emph{Optimization With Constraints}, 2004, IM
 Ravi Varadhan, Center on Aging and Health, Johns Hopkins University.
 }
 \seealso{
-See Also \code{\link{constrOptim.nl}}.
+See Also \code{\link{constrOptim.nl}}, \code{\link{nlminb}}, \code{\link{optim}}.
 }
 
 \examples{
@@ -163,11 +165,21 @@ j
 #
 p0 <- runif(3)
 ans <- auglag(par=p0, fn=fn, gr=gr, heq=heq, heq.jac=heq.jac, hin=hin, hin.jac=hin.jac) 
+ans
 
 # Not specifying the gradient and the Jacobians
 set.seed(12)
 p0 <- runif(3)
 ans2 <- auglag(par=p0, fn=fn, heq=heq, hin=hin) 
+ans2
+
+# Using "nlminb" algorithm
+ans3 <- auglag(par=p0, fn=fn, heq=heq, hin=hin, control.outer=list(method="nlminb")) 
+ans3
+
+# Turning off the second-order KKT condition check
+ans4 <- auglag(par=p0, fn=fn, heq=heq, hin=hin, control.outer=list(kkt2.check=FALSE)) 
+ans4
 
 }
 

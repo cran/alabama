@@ -9,9 +9,9 @@ Augmented Lagrangian and Adaptive Barrier Minimization Algorithm for optimizing 
 \tabular{ll}{
 Package: \tab alabama\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2010-10-13\cr
-License: \tab What license is it under?\cr
+Version: \tab 2015.3-1\cr
+Date: \tab 2015-03-05\cr
+License: \tab GPL-2 or greater\cr
 LazyLoad: \tab yes\cr
 }
 }
@@ -22,5 +22,5 @@ Ravi Varadhan <ravi.varadhan@jhu.edu>
 }
 \keyword{optimize}
 \seealso{
-constrOptim, spg
+\code{constrOptim}, \code{spg}
 }

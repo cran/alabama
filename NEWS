@@ -16,3 +16,11 @@
 
   o Added `ilack.max' as a control parameter and increased it to 6 (it was previously hard coded and set to 3)
 
+
+Changes in "alabama" version 2015.3-1
+
+  o Added `nlminb’ as an algorithm for the inner loop optimization. 
+
+  o Also added an option for checking the second-order KKT condition called `kkt2.check’ which is TRUE/FALSE. The default is TRUE, but can be set to FALSE in problems where hessian evaluation can be time consuming. 
+
+

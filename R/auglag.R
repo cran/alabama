@@ -8,7 +8,7 @@ auglag <- function (par, fn, gr, hin, hin.jac, heq, heq.jac,
 
 control.outer.default <- list(lam0 = 10, sig0 = 100, eps = 1e-07,
        itmax = 50, method = "BFGS", trace = TRUE, NMinit = FALSE, ilack.max=6,
-i.scale = 1, e.scale = 1)
+i.scale = 1, e.scale = 1, kkt2.check=TRUE)
 
 control.optim.default <- list(trace = 0, fnscale = 1, parscale = rep.int(1,
        length(par)), ndeps = rep.int(0.001, length(par)), maxit = 100L,
@@ -16,8 +16,17 @@ control.optim.default <- list(trace = 0, fnscale = 1, parscale = rep.int(1,
        beta = 0.5, gamma = 2, REPORT = 10, type = 1, lmm = 5,
        factr = 1e+07, pgtol = 0, tmax = 10, temp = 10)
 
+control.nlminb.default <- list(eval.max=200,iter.max=150,trace=0,abs.tol=0,rel.tol=1.e-10,x.tol=1.5e-08,xf.tol=2.2e-14,step.min=1,step.max=1,
+sing.tol=1.e-10)
+
 control.outer <- modifyList(control.outer.default, control.outer) 
-control.optim <- modifyList(control.optim.default, control.optim)
+
+control.inner <- if (control.outer$method != "nlminb") modifyList(control.optim.default,control.optim) else if (control.outer$method=="nlminb") modifyList(control.nlminb.default, control.optim)
+
+if (control.outer$method == "nlminb" & control.outer$NMinit) {
+warning("NM initialization can't be used with `nlminb'; it will be ignored")
+control.outer$NMinit <- FALSE
+}
 
 e.scale <- control.outer$e.scale
 i.scale <- control.outer$i.scale
@@ -31,14 +40,14 @@ i.scale <- control.outer$i.scale
 	else function(par, ...) heq.jac(par, ...) / e.scale
 
 	ans <- auglag1(par, fn, gr, heq.scaled, heq.jac.scaled,  
-	control.outer = control.outer, control.optim = control.optim, ...)  
+	control.outer = control.outer, control.optim = control.inner, ...)  
 	}  else if (missing(heq)) {
 	hin.scaled <- function(par, ...) { hin(par, ...) / i.scale}
       hin.jac.scaled <-  if (missing(hin.jac)) function(par, ...) jacobian(func=hin.scaled, x=par, method= "simple", ...) 
 	else function(par, ...) hin.jac(par, ...) / i.scale
 
 	ans <- auglag2(par, fn, gr, hin.scaled, hin.jac.scaled,  
-	control.outer = control.outer, control.optim = control.optim, ...) 
+	control.outer = control.outer, control.optim = control.inner, ...) 
   }   else  {
     	heq.scaled <- function(par, ...) { heq(par, ...) / e.scale}
 	hin.scaled <- function(par, ...) { hin(par, ...) / i.scale}
@@ -48,7 +57,7 @@ i.scale <- control.outer$i.scale
 	else function(par, ...) hin.jac(par, ...) / i.scale
 
 	ans <- auglag3(par, fn=fn, gr=gr, hin=hin.scaled, hin.jac=hin.jac.scaled, heq=heq.scaled, heq.jac=heq.jac.scaled,  
-	control.outer = control.outer, control.optim = control.optim, ...) 
+	control.optim = control.inner, control.outer = control.outer, ...) 
 	}
 
 if (!missing(hin)) ans$ineq <- ans$ineq * i.scale
@@ -72,6 +81,7 @@ auglag1 <- function (par, fn, gr = NULL,
     ilack.max <- control.outer$ilack.max
     method <- control.outer$method
     NMinit <- control.outer$NMinit
+    kkt2.check <- control.outer$kkt2.check
     pfact <- if (!is.null(control.optim$fnscale) && control.optim$fnscale < 
         0) -1 else 1
 
@@ -115,19 +125,25 @@ auglag1 <- function (par, fn, gr = NULL,
         par.old <- par
         obj.old <- obj
 	  r.old <- r
-        if (sig > 1e+05) 
-            control.optim$reltol <- 1e-10
         if (NMinit & i == 1) 
             a <- optim(par = par, fn = fun, 
                 control = control.optim, method = "Nelder-Mead", ...)
-        else a <- optim(par = par, fn = fun, gr=gradient, 			control = control.optim, method = method, ...)
-        par <- a$par
+        else if (method != "nlminb") {
+        if (sig > 1e+05) 
+            control.optim$reltol <- 1e-10
+        a <- optim(par = par, fn = fun, gr=gradient, control = control.optim, method = method, ...)
         r <- a$value
+        feval <- feval + a$counts[1]
+        geval <- geval + a$counts[2]
+        } else if (method == "nlminb") {
+        a <- nlminb(start = par, objective = fun, gradient=gradient, control=control.optim, ...)
+        r <- a$objective
+        feval <- feval + a$evaluations[1]
+        geval <- geval + a$evaluations[2]
+        }
+        par <- a$par
         d0 <- heq(par, ...)
         K <- max(abs(d0))
-        feval <- feval + a$counts[1]
-        if (!NMinit | i > 1) 
-            geval <- geval + a$counts[2]
         if (K <= Kprev/4) {
            lam <- lam - d0 * sig
             Kprev <- K
@@ -152,19 +168,27 @@ auglag1 <- function (par, fn, gr = NULL,
             a$convergence <- 9
             a$message <- "Convergence due to lack of progress in parameter updates"
     }
+    if (method=="nlminb") {
+       a$evaluations <- NULL
+       a$objective <- NULL
+       a$iterations <- NULL
+    }
     a$outer.iterations <- i
     a$lambda <- lam
     a$sigma <- sig
     a$value <- fn(a$par, ...)
     a$gradient <- gradient(a$par, ...)
-    a$hessian <- jacobian(x=a$par, func=gradient, ...)
     a$ineq <- NA
     a$equal <- heq(a$par, ...)
     a$counts <- c(feval, geval)
     a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
-#    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
-    evs <- eigen(a$hessian)$value    
+     a$kkt2 <- NA
+    if (kkt2.check) {
+    a$hessian <- jacobian(x=a$par, func=gradient, ...)
+    evs <- eigen(a$hessian, symmetric=TRUE, only.values=TRUE)$value    
+#    a$kkt2 <- any(evs * control.optim$fnscale > 0) 
     a$kkt2 <- if (any(abs(Im(evs)) > 1.e-14)) FALSE else if (all(Re(evs) * control.optim$fnscale > 0)) TRUE else FALSE  
+    }
     a
 }
 
@@ -182,6 +206,7 @@ auglag2 <- function (par, fn, gr = NULL,
     ilack.max <- control.outer$ilack.max
     method <- control.outer$method
     NMinit <- control.outer$NMinit
+    kkt2.check <- control.outer$kkt2.check
     pfact <- if (!is.null(control.optim$fnscale) && control.optim$fnscale < 
         0) -1 else 1
 
@@ -233,22 +258,28 @@ auglag2 <- function (par, fn, gr = NULL,
         par.old <- par
         obj.old <- obj
 	  r.old <- r
-        if (sig > 1e+05) 
-            control.optim$reltol <- 1e-10
         if (NMinit & i == 1) 
             a <- optim(par = par, fn = fun, 
                 control = control.optim, method = "Nelder-Mead", ...)
-        else a <- optim(par = par, fn = fun, gr=gradient, 			control = control.optim, method = method, ...)
-        par <- a$par
+        else if (method != "nlminb") {
+        if (sig > 1e+05) 
+            control.optim$reltol <- 1e-10
+        a <- optim(par = par, fn = fun, gr=gradient, control = control.optim, method = method, ...)
         r <- a$value
+        feval <- feval + a$counts[1]
+        geval <- geval + a$counts[2]
+        } else if (method == "nlminb") {
+        a <- nlminb(start = par, objective = fun, gradient=gradient, control=control.optim, ...)
+        r <- a$objective
+        feval <- feval + a$evaluations[1]
+        geval <- geval + a$evaluations[2]
+        }
+        par <- a$par
     	h0 <- hin(par, ...)
 	d0 <- h0
 	    	inactive <- (1:length(h0))[(h0 > lam[1:length(h0)]/sig)]
 		d0[inactive] <- lam[inactive] / sig
         K <- max(abs(d0))
-        feval <- feval + a$counts[1]
-        if (!NMinit | i > 1) 
-            geval <- geval + a$counts[2]
         if (K <= Kprev/4) {
            lam <- lam - d0 * sig
             Kprev <- K
@@ -273,19 +304,27 @@ auglag2 <- function (par, fn, gr = NULL,
             a$convergence <- 9
             a$message <- "Convergence due to lack of progress in parameter updates"
     }
+    if (method=="nlminb") {
+       a$evaluations <- NULL
+       a$objective <- NULL
+       a$iterations <- NULL
+    }
     a$outer.iterations <- i
     a$lambda <- lam
     a$sigma <- sig
     a$value <- fn(a$par, ...)
     a$gradient <- gradient(a$par, ...)
-    a$hessian <- jacobian(x=a$par, func=gradient, ...)
     a$ineq <- hin(a$par, ...) 
     a$equal <- NA
     a$counts <- c(feval, geval)
     a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
-#    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale > 0) 
-    evs <- eigen(a$hessian)$value    
+     a$kkt2 <- NA
+    if (kkt2.check) {
+    a$hessian <- jacobian(x=a$par, func=gradient, ...)
+    evs <- eigen(a$hessian, symmetric=TRUE, only.values=TRUE)$value    
+#    a$kkt2 <- any(evs * control.optim$fnscale > 0) 
     a$kkt2 <- if (any(abs(Im(evs)) > 1.e-14)) FALSE else if (all(Re(evs) * control.optim$fnscale > 0)) TRUE else FALSE  
+    }
     a
 }
 
@@ -304,6 +343,7 @@ auglag3 <- function (par, fn, gr = NULL,
     ilack.max <- control.outer$ilack.max
     method <- control.outer$method
     NMinit <- control.outer$NMinit
+    kkt2.check <- control.outer$kkt2.check
     pfact <- if (!is.null(control.optim$fnscale) && control.optim$fnscale < 
         0) -1 else 1
 
@@ -369,14 +409,23 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
         par.old <- par
         obj.old <- obj
 	  r.old <- r
-        if (sig > 1e+05) 
-            control.optim$reltol <- 1e-10
-        if (NMinit & i == 1) 
+        if (NMinit && (i == 1)) 
             a <- optim(par = par, fn = fun, 
                 control = control.optim, method = "Nelder-Mead", ...)
-        else a <- optim(par = par, fn = fun, gr=gradient, control = control.optim, method = method, ...)
-        par <- a$par
+        else if (method != "nlminb") {
+        if (sig > 1e+05) 
+            control.optim$reltol <- 1e-10
+        a <- optim(par = par, fn = fun, gr=gradient, control = control.optim, method = method, ...)
         r <- a$value
+        feval <- feval + a$counts[1]
+        geval <- geval + a$counts[2]
+        } else if (method == "nlminb") {
+        a <- nlminb(start = par, objective = fun, gradient=gradient, control=control.optim, ...)
+        r <- a$objective
+        feval <- feval + a$evaluations[1]
+        geval <- geval + a$evaluations[2]
+        }
+        par <- a$par
         h0 <- hin(par, ...)
         i0 <- heq(par, ...)
 		d0 <- c(h0, i0)
@@ -385,9 +434,6 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
 		if (length(active) > 0) d0[active] <- h0[active]
 		if (length(inactive) > 0) d0[inactive] <- lam[inactive]/sig
         K <- max(abs(d0))
-        feval <- feval + a$counts[1]
-        if (!NMinit | i > 1) 
-            geval <- geval + a$counts[2]
         if (K <= Kprev/4) {
            lam <- lam - d0 * sig
             Kprev <- K
@@ -412,19 +458,27 @@ pfact * sig * drop(t(ij) %*% d0[-inactive])
             a$convergence <- 9
             a$message <- "Convergence due to lack of progress in parameter updates"
     }
+    if (method=="nlminb") {
+       a$evaluations <- NULL
+       a$objective <- NULL
+       a$iterations <- NULL
+    }
     a$outer.iterations <- i
     a$lambda <- lam
     a$sigma <- sig
     a$value <- fn(a$par, ...)
     a$gradient <- gradient(a$par, ...)
-    a$hessian <- jacobian(x=a$par, func=gradient, ...)
     a$ineq <- hin(a$par, ...) 
     a$equal <- heq(a$par, ...)
     a$counts <- c(feval, geval)
     a$kkt1 <- max(abs(a$gradient)) <= 0.01 * (1 + abs(a$value)) 
-    evs <- eigen(a$hessian)$value    
+     a$kkt2 <- NA
+    if (kkt2.check) {
+    a$hessian <- jacobian(x=a$par, func=gradient, ...)
+    evs <- eigen(a$hessian, symmetric=TRUE, only.values=TRUE)$value    
+#    a$kkt2 <- any(evs * control.optim$fnscale > 0) 
     a$kkt2 <- if (any(abs(Im(evs)) > 1.e-14)) FALSE else if (all(Re(evs) * control.optim$fnscale > 0)) TRUE else FALSE  
-#    a$kkt2 <- any(eigen(a$hessian)$value * control.optim$fnscale> 0) 
+    }
     a
 }
 
