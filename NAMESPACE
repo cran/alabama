@@ -8,3 +8,6 @@ exportPattern(".")
 import(
   numDeriv
 )
+
+importFrom("stats", "nlminb", "optim")
+  importFrom("utils", "modifyList")
