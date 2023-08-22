@@ -1,4 +1,5 @@
 \name{alabama}
+\alias{alabama-package}
 \docType{package}
 \title{Constrained Nonlinear Optimization
 }
@@ -9,8 +10,8 @@ Augmented Lagrangian and Adaptive Barrier Minimization Algorithm for optimizing 
 \tabular{ll}{
 Package: \tab alabama\cr
 Type: \tab Package\cr
-Version: \tab 2015.3-1\cr
-Date: \tab 2015-03-05\cr
+Version: \tab 2023.1.0\cr
+Date: \tab 2023-08-21\cr
 License: \tab GPL-2 or greater\cr
 LazyLoad: \tab yes\cr
 }

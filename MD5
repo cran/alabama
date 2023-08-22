@@ -1,10 +1,10 @@
-59ead30a853d6c66c08afd9acf93a44a *DESCRIPTION
+d0633e4a719e96c3798a847206114a5e *DESCRIPTION
 a3f56d6e7692d14ab4949836cb858e7f *NAMESPACE
 cc159cbe439212f94db4fccc4574fcd3 *NEWS
 7890a893069c08d6210b0f65b2fc68b1 *R/auglag.R
 2a37bea9471e65caf36988bcee7213c1 *R/constrOptim.nl.R
 2d27c915e2a6088ba606f832a4118d46 *demo/00Index
 f6d6801ebf763509fd6b4a43835439be *demo/alabama.R
-ad81dec391c82784455c668d1c519ebd *man/alabama-package.Rd
+7684b27fc3002c59f13016e0918bf600 *man/alabama-package.Rd
 1265a9a5470a12dbc9f1231cabd1aee9 *man/auglag.Rd
 523b49efd6fa09376feba34040572a4b *man/constrOptim.nl.Rd
