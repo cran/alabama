@@ -19,8 +19,13 @@
 
 Changes in "alabama" version 2015.3-1
 
-  o Added `nlminb’ as an algorithm for the inner loop optimization. 
+  o Added `nlminb? as an algorithm for the inner loop optimization. 
 
-  o Also added an option for checking the second-order KKT condition called `kkt2.check’ which is TRUE/FALSE. The default is TRUE, but can be set to FALSE in problems where hessian evaluation can be time consuming. 
+  o Also added an option for checking the second-order KKT condition called `kkt2.check? which is TRUE/FALSE. The default is TRUE, but can be set to FALSE in problems where hessian evaluation can be time consuming. 
+
+Changes in "alabama" version 2025.1.0
+
+  o Added the return of convergence code when only equality constraints are present in constrOptim.nl
+
 
 

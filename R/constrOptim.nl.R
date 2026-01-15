@@ -208,6 +208,8 @@ NMinit <- control.outer$NMinit
   
     ans$par <- theta
     ans$value <- fn(a$par, ...)
+    ans$convergence <- a$convergence
+    ans$message <- a$message
     ans$iterations <- k
     ans$lambda <- lam
     ans$penalty <- r - ans$value
